@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Anime Search</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f5f2;
+      --surface: #ffffff;
+      --border: #e8e4de;
+      --text: #1a1814;
+      --muted: #8a8680;
+      --accent: #c9470a;
+      --accent-light: #f9ece5;
+      --tag-bg: #f0ede8;
+      --radius: 4px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 80px;
+    }
+
+    /* Header */
+    header {
+      padding: 56px 24px 40px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .logo em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .tagline {
+      margin-top: 8px;
+      font-size: 0.875rem;
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: 0.02em;
+    }
+
+    /* Search */
+    .search-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 24px 40px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 0;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+      transition: border-color 0.2s;
+    }
+
+    .search-bar:focus-within {
+      border-color: var(--accent);
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 14px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 400;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .search-bar input::placeholder { color: var(--muted); }
+
+    .search-bar button {
+      padding: 14px 24px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .search-bar button:hover { opacity: 0.88; }
+    .search-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Results area */
+    .results-area {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .results-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* Anime Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .card:hover {
+      border-color: #d4cfc8;
+      box-shadow: var(--shadow);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.15rem;
+      line-height: 1.3;
+      color: var(--text);
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .score {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .similarity {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .synopsis {
+      font-size: 0.875rem;
+      color: #5a5650;
+      line-height: 1.65;
+      margin-bottom: 14px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .genres {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      background: var(--tag-bg);
+      color: var(--muted);
+      padding: 3px 9px;
+      border-radius: 2px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .similar-btn {
+      font-size: 0.75rem;
+      color: var(--accent);
+      background: var(--accent-light);
+      border: none;
+      padding: 5px 12px;
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .similar-btn:hover { opacity: 0.8; }
+
+    /* Similar section header */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .section-label h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+
+    .back-btn {
+      font-size: 0.8rem;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.15s;
+    }
+
+    .back-btn:hover { border-color: var(--muted); }
+
+    /* Empty / error states */
+    .state-msg {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .state-msg strong {
+      display: block;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem;
+      color: var(--text);
+      margin-bottom: 6px;
+      font-weight: 400;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: flex;
+      justify-content: center;
+      padding: 60px;
+    }
+
+    .spinner::after {
+      content: '';
+      width: 28px; height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Divider */
+    hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+    @media (max-width: 500px) {
+      .card { padding: 18px; }
+      .card-header { flex-direction: column; gap: 6px; }
+      .card-meta { flex-direction: row; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">anime<em>search</em></div>
+  <p class="tagline">Semantic search powered by sentence embeddings</p>
+</header>
+
+<div class="search-wrap">
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="e.g. dark psychological thriller, found family, space opera..." autocomplete="off"/>
+    <button id="searchBtn" onclick="doSearch()">Search</button>
+  </div>
+</div>
+
+<div class="results-area" id="resultsArea"></div>
+
+<script>
+  const API_BASE = 'http://localhost:8000/api/v1';
+
+  const input = document.getElementById('searchInput');
+  const btn = document.getElementById('searchBtn');
+  const area = document.getElementById('resultsArea');
+
+  // Allow Enter key
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+  function setLoading(on) {
+    btn.disabled = on;
+    btn.textContent = on ? '...' : 'Search';
+  }
+
+  function renderCards(items, extraHeader = '') {
+    if (!items.length) {
+      area.innerHTML = `<div class="state-msg"><strong>No results found</strong>Try a different query</div>`;
+      return;
+    }
+
+    const cards = items.map((a, i) => {
+      const genres = a.genres
+        ? a.genres.split(',').slice(0, 4).map(g => `<span class="tag">${g.trim()}</span>`).join('')
+        : '';
+      const score = a.score ? `<span class="score">★ ${parseFloat(a.score).toFixed(1)}</span>` : '';
+      const sim = `<span class="similarity">${(a.similarity * 100).toFixed(0)}% match</span>`;
+
+      return `
+        <div class="card" style="animation-delay:${i * 40}ms">
+          <div class="card-header">
+            <div class="card-title">${escHtml(a.title)}</div>
+            <div class="card-meta">${score}${sim}</div>
+          </div>
+          <p class="synopsis">${escHtml(a.synopsis || 'No synopsis available.')}</p>
+          <div class="card-footer">
+            <div class="genres">${genres}</div>
+            <button class="similar-btn" onclick="doSimilar(${a.anime_id}, '${escHtml(a.title).replace(/'/g,"\\'")}')">Similar →</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    area.innerHTML = extraHeader + cards;
+  }
+
+  async function doSearch() {
+    const q = input.value.trim();
+    if (!q) return;
+
+    setLoading(true);
+    area.innerHTML = '<div class="spinner"></div>';
+
+    try {
+      const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}&top_k=10`);
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+
+      const meta = `<p class="results-meta">${data.results.length} results for "${escHtml(q)}"</p>`;
+      renderCards(data.results, meta);
+    } catch (e) {
+      area.innerHTML = `<div class="state-msg"><strong>Could not connect</strong>Make sure your API is running at <code>${API_BASE}</code></div>`;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function doSimilar(animeId, title) {
+    area.innerHTML = '<div class="spinner"></div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      const res = await fetch(`${API_BASE}/similar/${animeId}?top_k=10`);
+      if (!res.ok) throw new Error('Not found');
+      const data = await res.json();
+
+      const header = `
+        <div class="section-label">
+          <h2>Similar to <em>${escHtml(title)}</em></h2>
+          <button class="back-btn" onclick="restoreSearch()">← Back</button>
+        </div>`;
+      renderCards(data.results, header);
+    } catch (e) {
+      area.innerHTML = `<div class="state-msg"><strong>Error</strong>Could not load similar anime.</div>`;
+    }
+  }
+
+  function restoreSearch() {
+    const q = input.value.trim();
+    if (q) doSearch();
+    else area.innerHTML = '';
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
