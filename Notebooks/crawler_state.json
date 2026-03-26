@@ -1,0 +1,12 @@
+{
+  "last_id": 20176,
+  "stats": {
+    "total_checked": 20175,
+    "valid_anime": 7669,
+    "not_found": 11030,
+    "filtered_out": 0,
+    "errors": 10,
+    "last_id": 20175
+  },
+  "timestamp": "2026-02-16 02:30:08"
+}
